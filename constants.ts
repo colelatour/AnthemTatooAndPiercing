@@ -1,47 +1,41 @@
-import { PortfolioItem, Service } from './types';
+import { Artist, Service } from './types';
 
-export const INITIAL_PORTFOLIO: PortfolioItem[] = [
+export const INITIAL_ARTISTS: Artist[] = [
   {
     id: '1',
-    url: 'https://picsum.photos/id/103/600/800',
-    title: 'Traditional Rose',
-    category: 'tattoo',
-    description: 'Neo-traditional style rose on forearm.'
+    url: 'https://picsum.photos/id/64/600/800',
+    name: 'Marcus Reed',
+    specialty: 'tattoo',
+    bio: 'Specializing in neo-traditional and Japanese styles with over 10 years of experience. Marcus brings bold colors and intricate detail to every piece.',
+    favoriteProjects: [
+      { id: 'p1-1', url: 'https://picsum.photos/id/103/600/800', title: 'Traditional Rose' },
+      { id: 'p1-2', url: 'https://picsum.photos/id/106/600/800', title: 'Geometric Wolf' },
+      { id: 'p1-3', url: 'https://picsum.photos/id/234/600/800', title: 'Blackwork Sleeve' }
+    ]
   },
   {
     id: '2',
-    url: 'https://picsum.photos/id/106/600/800',
-    title: 'Geometric Wolf',
-    category: 'tattoo',
-    description: 'Fine line geometric work.'
+    url: 'https://picsum.photos/id/91/600/800',
+    name: 'Sage Winters',
+    specialty: 'piercing',
+    bio: 'Certified piercer with expertise in anatomy and placement. Sage creates beautiful ear curations and specializes in complex piercing projects.',
+    favoriteProjects: [
+      { id: 'p2-1', url: 'https://picsum.photos/id/338/600/800', title: 'Septum Piercing' },
+      { id: 'p2-2', url: 'https://picsum.photos/id/65/600/800', title: 'Ear Curation' },
+      { id: 'p2-3', url: 'https://picsum.photos/id/180/600/800', title: 'Industrial Setup' }
+    ]
   },
   {
     id: '3',
-    url: 'https://picsum.photos/id/338/600/800',
-    title: 'Septum Piercing',
-    category: 'piercing',
-    description: 'Gold clicker jewelry.'
-  },
-  {
-    id: '4',
-    url: 'https://picsum.photos/id/234/600/800',
-    title: 'Blackwork Sleeve',
-    category: 'tattoo',
-    description: 'Heavy blackwork and negative space.'
-  },
-  {
-    id: '5',
-    url: 'https://picsum.photos/id/65/600/800',
-    title: 'Ear Curation',
-    category: 'piercing',
-    description: 'Triple lobe and helix setup.'
-  },
-  {
-    id: '6',
-    url: 'https://picsum.photos/id/164/600/800',
-    title: 'Watercolor Splash',
-    category: 'tattoo',
-    description: 'Abstract watercolor overlay.'
+    url: 'https://picsum.photos/id/177/600/800',
+    name: 'Luna Chen',
+    specialty: 'tattoo',
+    bio: 'Fine line and micro-realism artist. Luna specializes in delicate, minimalist designs and intricate botanical work.',
+    favoriteProjects: [
+      { id: 'p3-1', url: 'https://picsum.photos/id/164/600/800', title: 'Watercolor Splash' },
+      { id: 'p3-2', url: 'https://picsum.photos/id/222/600/800', title: 'Fine Line Florals' },
+      { id: 'p3-3', url: 'https://picsum.photos/id/241/600/800', title: 'Minimalist Portrait' }
+    ]
   }
 ];
 
