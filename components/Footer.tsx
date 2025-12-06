@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Facebook, Twitter, MapPin, Phone, Mail } from 'lucide-react';
+import { Instagram, Facebook, MapPin, Phone, Mail } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -18,13 +18,14 @@ const Footer: React.FC = () => {
         {/* Contact Info */}
         <div className="flex flex-col space-y-4">
           <h4 className="text-lg font-bold text-gray-200">Studio Info</h4>
-          <div className="flex items-center space-x-2">
+          <a href="https://maps.app.goo.gl/kt9J9kKnSjssUYKh7" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 hover:text-ink-gold transition-colors">
             <MapPin size={18} className="text-ink-gold" />
-            <span>123 Obsidian Ave, Dark District, NY</span>
-          </div>
+            <span>640 N Main St Suite 231, North Salt Lake, UT 84054
+            </span>
+          </a>
           <div className="flex items-center space-x-2">
             <Phone size={18} className="text-ink-gold" />
-            <span>(555) 666-0123</span>
+            <span> (801) 247-5896</span>
           </div>
           <div className="flex items-center space-x-2">
             <Mail size={18} className="text-ink-gold" />
@@ -38,9 +39,8 @@ const Footer: React.FC = () => {
           <p className="text-sm">Tue - Sat: 11:00 AM - 8:00 PM</p>
           <p className="text-sm">Sun - Mon: Appointment Only</p>
           <div className="flex space-x-4 mt-2">
-            <a href="#" className="hover:text-ink-gold transition-colors"><Instagram /></a>
-            <a href="#" className="hover:text-ink-gold transition-colors"><Facebook /></a>
-            <a href="#" className="hover:text-ink-gold transition-colors"><Twitter /></a>
+            <a href="https://www.instagram.com/anthempiercingandtattoo?igsh=czg0dmJybXJ5bDJ6" target="_blank" rel="noopener noreferrer" className="hover:text-ink-gold transition-colors"><Instagram /></a>
+            <a href="https://www.facebook.com/AnthemTats/" target="_blank" rel="noopener noreferrer" className="hover:text-ink-gold transition-colors"><Facebook /></a>
           </div>
         </div>
       </div>
