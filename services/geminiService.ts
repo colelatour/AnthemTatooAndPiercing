@@ -1,7 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize the Gemini client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY || '';
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 /**
  * Generates a creative tattoo concept based on user input.
@@ -10,6 +11,10 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  */
 export const generateTattooConcept = async (userIdea: string): Promise<string> => {
   try {
+    if (!ai) {
+      return "AI feature requires an API key. Please add GEMINI_API_KEY to your .env file to enable this feature.";
+    }
+    
     const modelId = 'gemini-2.5-flash'; 
     const prompt = `
       You are a world-class tattoo artist and designer.

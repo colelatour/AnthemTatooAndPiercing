@@ -1,0 +1,11 @@
+/* Minimal fallback styles to ensure content is visible if Tailwind CDN fails */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: 'Lato', sans-serif;
+  background: #2F2F30; /* ink.dark fallback */
+  color: #e5e7eb;
+}
+img { max-width: 100%; height: auto; display: block; }
