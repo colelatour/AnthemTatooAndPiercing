@@ -2,7 +2,16 @@ import { GoogleGenAI } from "@google/genai";
 
 // Initialize the Gemini client
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+let ai = null;
+
+try {
+  if (apiKey) {
+    ai = new GoogleGenAI({ apiKey });
+  }
+} catch (error) {
+  console.warn("Failed to initialize Gemini AI:", error);
+  ai = null;
+}
 
 /**
  * Generates a creative tattoo concept based on user input.
