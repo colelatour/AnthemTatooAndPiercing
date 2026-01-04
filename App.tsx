@@ -7,7 +7,6 @@ import { ViewState, Artist, JewelryItem, User } from './types';
 import { INITIAL_ARTISTS, SERVICES } from './constants';
 import Footer from './components/Footer';
 import AdminDashboard from './components/AdminDashboard';
-import GeminiConsultant from './components/GeminiConsultant';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>(ViewState.HOME);
@@ -214,14 +213,13 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            {/* AI Generator Section */}
-            <section id="consultation" className="py-20 bg-ink-dark">
+            {/* AI Generator Section - Removed temporarily */}
+            {/* <section id="consultation" className="py-20 bg-ink-dark">
               <div className="container mx-auto px-4 text-center">
                 <h2 className="text-4xl font-serif text-gray-100 mb-2">Find Your Inspiration</h2>
                 <div className="w-20 h-1 bg-ink-gold mx-auto mb-8"></div>
-                <GeminiConsultant />
               </div>
-            </section>
+            </section> */}
           </div>
         )}
 
