@@ -109,7 +109,7 @@ const App: React.FC = () => {
             onClick={() => setView(ViewState.HOME)}
           >
             <img 
-              src="./ANTHEM LOGO.png" 
+              src="/ANTHEM LOGO.png" 
               alt="Anthem Tattoo" 
               className="h-16 w-auto"
             />
