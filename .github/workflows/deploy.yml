@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - jewerlypage
   workflow_dispatch:
 
 permissions:
