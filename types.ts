@@ -4,11 +4,13 @@ export interface ArtistProject {
   title: string;
 }
 
+export type Specialty = 'tattoo' | 'piercing' | 'permanentjewerly';
+
 export interface Artist {
   id: string;
   url: string;
   name: string;
-  specialty: 'tattoo' | 'piercing';
+  specialty: Specialty[];
   bio?: string;
   favoriteProjects: ArtistProject[];
 }
@@ -26,11 +28,34 @@ export interface User {
   isAdmin: boolean;
 }
 
+export type JewelryTag = 'permanent' | 'piercing';
+
 export interface JewelryItem {
   id: string;
   url: string;
   title: string;
   description?: string;
+  tag?: JewelryTag;
+}
+
+export interface HomepageContent {
+  heroImage: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  button1Text: string;
+  button2Text: string;
+  promotionTitle: string;
+  promotionText: string;
+  promotionImage: string;
+  services: Service[];
+  footerDescription: string;
+  footerHours: string[];
+  footerInstagramUrl: string;
+  footerFacebookUrl: string;
+  footerAddress: string;
+  footerMapUrl: string;
+  footerPhone: string;
+  footerEmail: string;
 }
 
 export enum ViewState {

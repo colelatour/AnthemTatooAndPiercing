@@ -1,11 +1,23 @@
-import { Artist, Service } from './types';
+import { Artist, Service, Specialty } from './types';
+
+export const SPECIALTY_LABELS: Record<Specialty, string> = {
+  tattoo: 'Tattoo',
+  piercing: 'Piercing',
+  permanentjewerly: 'Permanent Jewelry'
+};
+
+export const SPECIALTY_OPTIONS: { value: Specialty; label: string }[] = [
+  { value: 'tattoo', label: 'Tattoo' },
+  { value: 'piercing', label: 'Piercing' },
+  { value: 'permanentjewerly', label: 'Permanent Jewelry' }
+];
 
 export const INITIAL_ARTISTS: Artist[] = [
   {
     id: '1',
     url: 'https://picsum.photos/id/64/600/800',
     name: 'Marcus Reed',
-    specialty: 'tattoo',
+    specialty: ['tattoo'],
     bio: 'Specializing in neo-traditional and Japanese styles with over 10 years of experience. Marcus brings bold colors and intricate detail to every piece.',
     favoriteProjects: [
       { id: 'p1-1', url: 'https://picsum.photos/id/103/600/800', title: 'Traditional Rose' },
@@ -17,7 +29,7 @@ export const INITIAL_ARTISTS: Artist[] = [
     id: '2',
     url: 'https://picsum.photos/id/91/600/800',
     name: 'Sage Winters',
-    specialty: 'piercing',
+    specialty: ['piercing'],
     bio: 'Certified piercer with expertise in anatomy and placement. Sage creates beautiful ear curations and specializes in complex piercing projects.',
     favoriteProjects: [
       { id: 'p2-1', url: 'https://picsum.photos/id/338/600/800', title: 'Septum Piercing' },
@@ -29,7 +41,7 @@ export const INITIAL_ARTISTS: Artist[] = [
     id: '3',
     url: 'https://picsum.photos/id/177/600/800',
     name: 'Luna Chen',
-    specialty: 'tattoo',
+    specialty: ['tattoo'],
     bio: 'Fine line and micro-realism artist. Luna specializes in delicate, minimalist designs and intricate botanical work.',
     favoriteProjects: [
       { id: 'p3-1', url: 'https://picsum.photos/id/164/600/800', title: 'Watercolor Splash' },

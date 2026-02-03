@@ -5,7 +5,19 @@ html, body, #root {
 body {
   margin: 0;
   font-family: 'Lato', sans-serif;
-  background: #2F2F30; /* ink.dark fallback */
+  background: #424E53; /* ink.dark fallback (flipped: main bg is slate blue) */
   color: #e5e7eb;
 }
 img { max-width: 100%; height: auto; display: block; }
+
+/* Fallback hover behavior if Tailwind CDN styles fail */
+.artist-card {
+  position: relative;
+}
+.artist-card__overlay {
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.artist-card:hover .artist-card__overlay {
+  opacity: 1;
+}

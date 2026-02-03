@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Trash2, Plus, LogOut, Image as ImageIcon, Upload, Edit, X } from 'lucide-react';
-import { Artist, ArtistProject, JewelryItem } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Trash2, Plus, LogOut, Image as ImageIcon, Upload, Edit, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Artist, ArtistProject, JewelryItem, HomepageContent, Service, Specialty, JewelryTag } from '../types';
+import { SPECIALTY_LABELS, SPECIALTY_OPTIONS } from '../constants';
 
 interface AdminDashboardProps {
   artists: Artist[];
@@ -11,6 +12,8 @@ interface AdminDashboardProps {
   onAddJewelryItem: (item: JewelryItem) => void;
   onRemoveJewelryItem: (id: string) => void;
   onUpdateJewelryItem: (item: JewelryItem) => void;
+  homepageContent: HomepageContent;
+  onUpdateHomepage: (content: HomepageContent) => void;
   onLogout: () => void;
 }
 
@@ -22,22 +25,61 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   jewelryItems, 
   onAddJewelryItem, 
   onRemoveJewelryItem,
-  onUpdateJewelryItem, 
+  onUpdateJewelryItem,
+  homepageContent,
+  onUpdateHomepage,
   onLogout 
 }) => {
-  const [activeTab, setActiveTab] = useState<'team' | 'jewelry'>('team');
+  const [activeTab, setActiveTab] = useState<'homepage' | 'team' | 'jewelry'>('homepage');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItemUrl, setNewItemUrl] = useState('');
   const [newItemTitle, setNewItemTitle] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState<'tattoo' | 'piercing'>('tattoo');
+  const [newItemSpecialties, setNewItemSpecialties] = useState<Specialty[]>(['tattoo']);
   const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemJewelryTag, setNewItemJewelryTag] = useState<JewelryTag>('piercing');
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [editingJewelry, setEditingJewelry] = useState<JewelryItem | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   const [projectUrls, setProjectUrls] = useState<string[]>(['', '', '']);
   const [projectTitles, setProjectTitles] = useState<string[]>(['', '', '']);
+  const [homepageEdit, setHomepageEdit] = useState<HomepageContent>(homepageContent);
+  const [heroExpanded, setHeroExpanded] = useState(false);
+  const [promotionExpanded, setPromotionExpanded] = useState(false);
+  const [servicesExpanded, setServicesExpanded] = useState(false);
+  const [footerExpanded, setFooterExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const heroImageRef = useRef<HTMLInputElement>(null);
   const projectFileRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const projectItemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const formRef = useRef<HTMLDivElement>(null);
+  const [scrollToProjectIndex, setScrollToProjectIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setHomepageEdit(homepageContent);
+  }, [homepageContent]);
+
+  const formatSpecialties = (specialties: Specialty[]) => (
+    specialties.map(specialty => SPECIALTY_LABELS[specialty] ?? specialty).join(', ')
+  );
+
+  const toggleSpecialty = (specialty: Specialty) => {
+    setNewItemSpecialties(prev => {
+      if (prev.includes(specialty)) {
+        if (prev.length === 1) return prev;
+        return prev.filter(item => item !== specialty);
+      }
+      return [...prev, specialty];
+    });
+  };
+
+  useEffect(() => {
+    if (scrollToProjectIndex === null) return;
+    const target = projectItemRefs.current[scrollToProjectIndex];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setScrollToProjectIndex(null);
+  }, [scrollToProjectIndex, projectUrls.length]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,22 +105,65 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const handleHeroImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHomepageEdit({ ...homepageEdit, heroImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveHomepage = () => {
+    onUpdateHomepage(homepageEdit);
+    alert('Homepage updated successfully!');
+  };
+
+  const handleEditService = (service: Service) => {
+    setEditingService(service);
+  };
+
+  const handleUpdateService = (service: Service) => {
+    const updatedServices = homepageEdit.services.map(s => s.id === service.id ? service : s);
+    setHomepageEdit({ ...homepageEdit, services: updatedServices });
+    setEditingService(null);
+  };
+
+  const handleAddService = () => {
+    const newService: Service = {
+      id: Date.now().toString(),
+      title: 'New Service',
+      priceRange: '$0',
+      description: 'Service description',
+      iconName: 'pen-tool'
+    };
+    setHomepageEdit({ ...homepageEdit, services: [...homepageEdit.services, newService] });
+  };
+
+  const handleRemoveService = (id: string) => {
+    const updatedServices = homepageEdit.services.filter(s => s.id !== id);
+    setHomepageEdit({ ...homepageEdit, services: updatedServices });
+  };
+
   const handleEditArtist = (artist: Artist) => {
     setEditingArtist(artist);
     setNewItemUrl(artist.url);
     setNewItemTitle(artist.name);
-    setNewItemCategory(artist.specialty);
+    setNewItemSpecialties(artist.specialty.length ? artist.specialty : ['tattoo']);
     setNewItemDesc(artist.bio || '');
-    setProjectUrls([
-      artist.favoriteProjects[0]?.url || '',
-      artist.favoriteProjects[1]?.url || '',
-      artist.favoriteProjects[2]?.url || ''
-    ]);
-    setProjectTitles([
-      artist.favoriteProjects[0]?.title || '',
-      artist.favoriteProjects[1]?.title || '',
-      artist.favoriteProjects[2]?.title || ''
-    ]);
+    const projectCount = Math.max(artist.favoriteProjects.length, 3);
+    setProjectUrls(
+      Array.from({ length: projectCount }, (_, index) => (
+        artist.favoriteProjects[index]?.url || ''
+      ))
+    );
+    setProjectTitles(
+      Array.from({ length: projectCount }, (_, index) => (
+        artist.favoriteProjects[index]?.title || ''
+      ))
+    );
   };
 
   const handleEditJewelry = (item: JewelryItem) => {
@@ -86,6 +171,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewItemUrl(item.url);
     setNewItemTitle(item.title);
     setNewItemDesc(item.description || '');
+    setNewItemJewelryTag(item.tag ?? 'piercing');
   };
 
   const handleCancelEdit = () => {
@@ -95,6 +181,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewItemUrl('');
     setNewItemTitle('');
     setNewItemDesc('');
+    setNewItemSpecialties(['tattoo']);
+    setNewItemJewelryTag('piercing');
     setProjectUrls(['', '', '']);
     setProjectTitles(['', '', '']);
     if (fileInputRef.current) {
@@ -105,6 +193,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
   };
 
+  const handleAddProjectField = () => {
+    setProjectUrls(prev => {
+      const next = [...prev, ''];
+      setScrollToProjectIndex(next.length - 1);
+      return next;
+    });
+    setProjectTitles(prev => [...prev, '']);
+    projectFileRefs.current = [...projectFileRefs.current, null];
+    projectItemRefs.current = [...projectItemRefs.current, null];
+  };
+
+  const handleRemoveProjectField = (index: number) => {
+    if (projectUrls.length <= 1) return;
+    setProjectUrls(prev => prev.filter((_, i) => i !== index));
+    setProjectTitles(prev => prev.filter((_, i) => i !== index));
+    projectFileRefs.current = projectFileRefs.current.filter((_, i) => i !== index);
+    projectItemRefs.current = projectItemRefs.current.filter((_, i) => i !== index);
+  };
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemTitle) return;
@@ -113,6 +220,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!newItemUrl) return;
 
     if (activeTab === 'team') {
+      const normalizedSpecialties = newItemSpecialties.length ? newItemSpecialties : ['tattoo'];
       const favoriteProjects: ArtistProject[] = projectUrls
         .map((url, idx) => ({
           id: `proj-${Date.now()}-${idx}`,
@@ -126,7 +234,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         id: Date.now().toString(),
         url: newItemUrl,
         name: newItemTitle,
-        specialty: newItemCategory,
+        specialty: normalizedSpecialties,
         bio: newItemDesc,
         favoriteProjects
       };
@@ -137,7 +245,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         id: Date.now().toString(),
         url: newItemUrl,
         title: newItemTitle,
-        description: newItemDesc
+        description: newItemDesc,
+        tag: newItemJewelryTag
       };
       onAddJewelryItem(newItem);
     }
@@ -147,6 +256,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setNewItemUrl('');
     setNewItemTitle('');
     setNewItemDesc('');
+    setNewItemSpecialties(['tattoo']);
+    setNewItemJewelryTag('piercing');
     setProjectUrls(['', '', '']);
     setProjectTitles(['', '', '']);
     if (fileInputRef.current) {
@@ -162,11 +273,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!newItemTitle) return;
 
     if (activeTab === 'team' && editingArtist) {
+      const normalizedSpecialties = newItemSpecialties.length ? newItemSpecialties : ['tattoo'];
       const favoriteProjects: ArtistProject[] = projectUrls
         .map((url, idx) => ({
           id: editingArtist.favoriteProjects[idx]?.id || `proj-${Date.now()}-${idx}`,
-          url: url || (editingArtist.favoriteProjects[idx]?.url || ''),
-          title: projectTitles[idx] || editingArtist.favoriteProjects[idx]?.title || `Project ${idx + 1}`
+          url: url,
+          title: projectTitles[idx] || `Project ${idx + 1}`
         }))
         .filter(p => p.url);
 
@@ -174,7 +286,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         ...editingArtist,
         url: newItemUrl || editingArtist.url,
         name: newItemTitle,
-        specialty: newItemCategory,
+        specialty: normalizedSpecialties,
         bio: newItemDesc,
         favoriteProjects
       };
@@ -184,7 +296,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         ...editingJewelry,
         url: newItemUrl || editingJewelry.url,
         title: newItemTitle,
-        description: newItemDesc
+        description: newItemDesc,
+        tag: newItemJewelryTag
       };
       onUpdateJewelryItem(updatedItem);
     }
@@ -206,6 +319,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Tab Navigation */}
       <div className="flex gap-4 mb-8 border-b border-ink-slate">
+        <button
+          onClick={() => {
+            setActiveTab('homepage');
+            handleCancelEdit();
+          }}
+          className={`pb-3 px-4 font-bold transition-colors ${
+            activeTab === 'homepage'
+              ? 'text-ink-gold border-b-2 border-ink-gold'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          Homepage
+        </button>
         <button
           onClick={() => {
             setActiveTab('team');
@@ -235,17 +361,357 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-200 flex items-center gap-2">
-          <ImageIcon className="text-ink-gold" /> Current {activeTab === 'team' ? 'Team' : 'Jewelry'} ({activeTab === 'team' ? artists.length : jewelryItems.length})
-        </h3>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-ink-gold text-ink-dark font-bold px-6 py-3 rounded hover:bg-white transition-colors"
-        >
-          <Plus size={20} /> Add New {activeTab === 'team' ? 'Artist' : 'Jewelry'}
-        </button>
-      </div>
+      {activeTab === 'homepage' ? (
+        <div className="space-y-8">
+          {/* Hero Section */}
+          <div className="bg-ink-dark border border-ink-mud rounded-lg p-6">
+            <button
+              onClick={() => setHeroExpanded(!heroExpanded)}
+              className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition-opacity"
+            >
+              <h3 className="text-xl font-bold text-gray-200">Hero Section</h3>
+              {heroExpanded ? (
+                <ChevronUp className="text-ink-gold" size={24} />
+              ) : (
+                <ChevronDown className="text-ink-gold" size={24} />
+              )}
+            </button>
+            {heroExpanded && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Hero Image URL</label>
+                  <div className="flex gap-4">
+                    <input
+                      ref={heroImageRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleHeroImageChange}
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-gray-300 focus:border-ink-gold outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-ink-gold file:text-ink-dark hover:file:bg-white transition-colors cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Or enter image URL"
+                      className="flex-1 bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.heroImage}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, heroImage: e.target.value })}
+                    />
+                  </div>
+                  {homepageEdit.heroImage && (
+                    <img src={homepageEdit.heroImage} alt="Hero preview" className="mt-2 w-full max-w-md h-48 object-cover rounded border border-ink-gold" />
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Hero Title</label>
+                  <input
+                    type="text"
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.heroTitle}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, heroTitle: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Hero Subtitle</label>
+                  <input
+                    type="text"
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.heroSubtitle}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, heroSubtitle: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Promotion Section */}
+          <div className="bg-ink-dark border border-ink-mud rounded-lg p-6">
+            <button
+              onClick={() => setPromotionExpanded(!promotionExpanded)}
+              className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition-opacity"
+            >
+              <h3 className="text-xl font-bold text-gray-200">Promotion Section</h3>
+              {promotionExpanded ? (
+                <ChevronUp className="text-ink-gold" size={24} />
+              ) : (
+                <ChevronDown className="text-ink-gold" size={24} />
+              )}
+            </button>
+            {promotionExpanded && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Promotion Image URL</label>
+                  <div className="flex gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setHomepageEdit({ ...homepageEdit, promotionImage: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-gray-300 focus:border-ink-gold outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-ink-gold file:text-ink-dark hover:file:bg-white transition-colors cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Or enter image URL"
+                      className="flex-1 bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.promotionImage}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, promotionImage: e.target.value })}
+                    />
+                  </div>
+                  {homepageEdit.promotionImage && (
+                    <img src={homepageEdit.promotionImage} alt="Promotion preview" className="mt-2 w-full max-w-md h-48 object-cover rounded border border-ink-gold" />
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Promotion Title</label>
+                  <input
+                    type="text"
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.promotionTitle}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, promotionTitle: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Promotion Text</label>
+                  <textarea
+                    rows={3}
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.promotionText}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, promotionText: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Services Section */}
+          <div className="bg-ink-dark border border-ink-mud rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => setServicesExpanded(!servicesExpanded)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h3 className="text-xl font-bold text-gray-200">Services</h3>
+                {servicesExpanded ? (
+                  <ChevronUp className="text-ink-gold" size={24} />
+                ) : (
+                  <ChevronDown className="text-ink-gold" size={24} />
+                )}
+              </button>
+            </div>
+            {servicesExpanded && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleAddService}
+                    className="flex items-center gap-2 bg-ink-gold text-ink-dark font-bold px-4 py-2 rounded hover:bg-white transition-colors"
+                  >
+                    <Plus size={18} /> Add Service
+                  </button>
+                </div>
+                {homepageEdit.services.map((service) => (
+                <div key={service.id} className="bg-ink-dark/50 border border-ink-mud rounded p-4">
+                  {editingService?.id === service.id ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Title</label>
+                          <input
+                            type="text"
+                            className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white text-sm focus:border-ink-gold outline-none"
+                            value={editingService.title}
+                            onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Price Range</label>
+                          <input
+                            type="text"
+                            className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white text-sm focus:border-ink-gold outline-none"
+                            value={editingService.priceRange}
+                            onChange={(e) => setEditingService({ ...editingService, priceRange: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Description</label>
+                        <textarea
+                          rows={2}
+                          className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white text-sm focus:border-ink-gold outline-none"
+                          value={editingService.description}
+                          onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Icon</label>
+                        <select
+                          className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white text-sm focus:border-ink-gold outline-none"
+                          value={editingService.iconName}
+                          onChange={(e) => setEditingService({ ...editingService, iconName: e.target.value })}
+                        >
+                          <option value="pen-tool">Pen Tool</option>
+                          <option value="anchor">Anchor</option>
+                          <option value="message-circle">Message Circle</option>
+                        </select>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateService(editingService)}
+                          className="flex-1 bg-ink-gold text-ink-dark font-bold py-2 rounded text-sm hover:bg-white transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingService(null)}
+                          className="px-4 bg-gray-600 text-white font-bold py-2 rounded text-sm hover:bg-gray-500 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-ink-gold">{service.title}</h4>
+                        <p className="text-sm text-gray-400">{service.priceRange}</p>
+                        <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditService(service)}
+                          className="text-gray-500 hover:text-ink-gold transition-colors p-1"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleRemoveService(service.id)}
+                          className="text-gray-500 hover:text-red-500 transition-colors p-1"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Section */}
+          <div className="bg-ink-dark border border-ink-mud rounded-lg p-6">
+            <button
+              onClick={() => setFooterExpanded(!footerExpanded)}
+              className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition-opacity"
+            >
+              <h3 className="text-xl font-bold text-gray-200">Footer</h3>
+              {footerExpanded ? (
+                <ChevronUp className="text-ink-gold" size={24} />
+              ) : (
+                <ChevronDown className="text-ink-gold" size={24} />
+              )}
+            </button>
+            {footerExpanded && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Footer Description</label>
+                  <textarea
+                    rows={3}
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.footerDescription}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, footerDescription: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Footer Address</label>
+                  <input
+                    type="text"
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.footerAddress}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, footerAddress: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Google Maps URL</label>
+                  <input
+                    type="text"
+                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                    value={homepageEdit.footerMapUrl}
+                    onChange={(e) => setHomepageEdit({ ...homepageEdit, footerMapUrl: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Phone</label>
+                    <input
+                      type="text"
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.footerPhone}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, footerPhone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <input
+                      type="text"
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.footerEmail}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, footerEmail: e.target.value })}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Tip: include the @ symbol so mail links work correctly.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Instagram URL</label>
+                    <input
+                      type="text"
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.footerInstagramUrl}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, footerInstagramUrl: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Facebook URL</label>
+                    <input
+                      type="text"
+                      className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
+                      value={homepageEdit.footerFacebookUrl}
+                      onChange={(e) => setHomepageEdit({ ...homepageEdit, footerFacebookUrl: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleSaveHomepage}
+              className="bg-ink-gold text-ink-dark font-bold px-8 py-3 rounded hover:bg-white transition-colors"
+            >
+              Save Homepage Changes
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-gray-200 flex items-center gap-2">
+              <ImageIcon className="text-ink-gold" /> Current {activeTab === 'team' ? 'Team' : 'Jewelry'} ({activeTab === 'team' ? artists.length : jewelryItems.length})
+            </h3>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 bg-ink-gold text-ink-dark font-bold px-6 py-3 rounded hover:bg-white transition-colors"
+            >
+              <Plus size={20} /> Add New {activeTab === 'team' ? 'Artist' : 'Jewelry'}
+            </button>
+          </div>
 
       {activeTab === 'team' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -262,7 +728,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h4 className="font-bold text-ink-gold truncate">{artist.name}</h4>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">{artist.specialty}</span>
+                          <span className="text-xs text-gray-500 uppercase tracking-wider">
+                            {formatSpecialties(artist.specialty)}
+                          </span>
                           <p className="text-xs text-gray-400 mt-1 line-clamp-2">{artist.bio}</p>
                           <p className="text-xs text-gray-600 mt-1">{artist.favoriteProjects.length} projects</p>
                         </div>
@@ -308,6 +776,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <h4 className="font-bold text-ink-gold truncate">{item.title}</h4>
+                          {item.tag && (
+                            <span className="text-[10px] uppercase tracking-wider text-ink-gold/80">
+                              {item.tag === 'permanent' ? 'Permanent Jewelry' : 'Piercing Jewelry'}
+                            </span>
+                          )}
                           {item.description && (
                             <p className="text-xs text-gray-400 mt-1 line-clamp-2">{item.description}</p>
                           )}
@@ -340,6 +813,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 )}
               </div>
             )}
+        </>
+      )}
 
       {/* Add Modal */}
       {showAddModal && (
@@ -402,17 +877,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
               </div>
 
+              {activeTab === 'jewelry' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Jewelry Tag</label>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 text-sm text-gray-300">
+                      <input
+                        type="radio"
+                        name="jewelryTag"
+                        className="h-4 w-4 accent-ink-gold"
+                        checked={newItemJewelryTag === 'permanent'}
+                        onChange={() => setNewItemJewelryTag('permanent')}
+                      />
+                      <span>Permanent Jewelry</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-300">
+                      <input
+                        type="radio"
+                        name="jewelryTag"
+                        className="h-4 w-4 accent-ink-gold"
+                        checked={newItemJewelryTag === 'piercing'}
+                        onChange={() => setNewItemJewelryTag('piercing')}
+                      />
+                      <span>Piercing Jewelry</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Choose one tag for filtering.</p>
+                </div>
+              )}
+
               {activeTab === 'team' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Specialty</label>
-                  <select
-                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
-                    value={newItemCategory}
-                    onChange={(e) => setNewItemCategory(e.target.value as 'tattoo' | 'piercing')}
-                  >
-                    <option value="tattoo">Tattoo</option>
-                    <option value="piercing">Piercing</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Specialties</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {SPECIALTY_OPTIONS.map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm text-gray-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-ink-gold"
+                          checked={newItemSpecialties.includes(option.value)}
+                          onChange={() => toggleSpecialty(option.value)}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Select at least 1 specialty.</p>
                 </div>
               )}
 
@@ -432,11 +942,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {activeTab === 'team' && (
                 <div className="border-t border-ink-mud pt-4 mt-4">
                   <label className="block text-sm font-bold text-gray-300 mb-3">
-                    Favorite Projects (Up to 3)
+                    Favorite Projects
                   </label>
-                  {[0, 1, 2].map((index) => (
-                    <div key={index} className="mb-4 p-3 bg-ink-dark/50 rounded border border-ink-mud/50">
-                      <p className="text-xs text-gray-500 mb-2">Project {index + 1}</p>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-xs text-gray-500">Start with 3, add or remove as needed.</p>
+                    <button
+                      type="button"
+                      onClick={handleAddProjectField}
+                      className="flex items-center gap-2 bg-ink-gold text-ink-dark font-bold px-3 py-1.5 rounded hover:bg-white transition-colors text-xs"
+                    >
+                      <Plus size={14} /> Add Project
+                    </button>
+                  </div>
+                  {projectUrls.length === 0 && (
+                    <p className="text-xs text-gray-500 mb-3">No projects yet.</p>
+                  )}
+                  {projectUrls.map((_, index) => (
+                    <div
+                      key={index}
+                      ref={(el) => projectItemRefs.current[index] = el}
+                      className="mb-4 p-3 bg-ink-dark/50 rounded border border-ink-mud/50"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs text-gray-500">Project {index + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProjectField(index)}
+                          className="text-gray-500 hover:text-red-400 transition-colors text-xs"
+                          disabled={projectUrls.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </div>
                       <input
                         ref={(el) => projectFileRefs.current[index] = el}
                         type="file"
@@ -543,17 +1080,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
               </div>
 
+              {activeTab === 'jewelry' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Jewelry Tag</label>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="flex items-center gap-2 text-sm text-gray-300">
+                      <input
+                        type="radio"
+                        name="jewelryTagEdit"
+                        className="h-4 w-4 accent-ink-gold"
+                        checked={newItemJewelryTag === 'permanent'}
+                        onChange={() => setNewItemJewelryTag('permanent')}
+                      />
+                      <span>Permanent Jewelry</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-300">
+                      <input
+                        type="radio"
+                        name="jewelryTagEdit"
+                        className="h-4 w-4 accent-ink-gold"
+                        checked={newItemJewelryTag === 'piercing'}
+                        onChange={() => setNewItemJewelryTag('piercing')}
+                      />
+                      <span>Piercing Jewelry</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Choose one tag for filtering.</p>
+                </div>
+              )}
+
               {activeTab === 'team' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Specialty</label>
-                  <select
-                    className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white focus:border-ink-gold outline-none"
-                    value={newItemCategory}
-                    onChange={(e) => setNewItemCategory(e.target.value as 'tattoo' | 'piercing')}
-                  >
-                    <option value="tattoo">Tattoo</option>
-                    <option value="piercing">Piercing</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Specialties</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {SPECIALTY_OPTIONS.map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm text-gray-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-ink-gold"
+                          checked={newItemSpecialties.includes(option.value)}
+                          onChange={() => toggleSpecialty(option.value)}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Select at least 1 specialty.</p>
                 </div>
               )}
 
@@ -573,12 +1145,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {activeTab === 'team' && editingArtist && (
                 <div className="border-t border-ink-mud pt-4 mt-4">
                   <label className="block text-sm font-bold text-gray-300 mb-3">
-                    Favorite Projects (Up to 3)
-                    <span className="text-xs text-gray-500 ml-2 font-normal">(Leave blank to keep existing)</span>
+                    Favorite Projects
                   </label>
-                  {[0, 1, 2].map((index) => (
-                    <div key={index} className="mb-4 p-3 bg-ink-dark/50 rounded border border-ink-mud/50">
-                      <p className="text-xs text-gray-500 mb-2">Project {index + 1}</p>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-xs text-gray-500">Add, remove, or update projects.</p>
+                    <button
+                      type="button"
+                      onClick={handleAddProjectField}
+                      className="flex items-center gap-2 bg-ink-gold text-ink-dark font-bold px-3 py-1.5 rounded hover:bg-white transition-colors text-xs"
+                    >
+                      <Plus size={14} /> Add Project
+                    </button>
+                  </div>
+                  {projectUrls.length === 0 && (
+                    <p className="text-xs text-gray-500 mb-3">No projects yet.</p>
+                  )}
+                  {projectUrls.map((_, index) => (
+                    <div
+                      key={index}
+                      ref={(el) => projectItemRefs.current[index] = el}
+                      className="mb-4 p-3 bg-ink-dark/50 rounded border border-ink-mud/50"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs text-gray-500">Project {index + 1}</p>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProjectField(index)}
+                          className="text-gray-500 hover:text-red-400 transition-colors text-xs"
+                          disabled={projectUrls.length <= 1}
+                        >
+                          Remove
+                        </button>
+                      </div>
                       <input
                         type="file"
                         accept="image/*"
