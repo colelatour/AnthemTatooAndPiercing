@@ -64,13 +64,13 @@ export const SERVICES: Service[] = [
     title: 'Body Piercing',
     priceRange: '$40 - $120',
     description: 'Professional piercing services using implant-grade titanium jewelry.',
-    iconName: 'anchor'
+    iconName: 'diamond'
   },
   {
     id: 's3',
     title: 'Consultations',
     priceRange: 'Free',
     description: '30-minute sessions to discuss your ideas, placement, and pricing.',
-    iconName: 'message-circle'
+    iconName: 'sparkles'
   }
 ];

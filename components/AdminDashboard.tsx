@@ -547,18 +547,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Icon</label>
-                        <select
-                          className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-white text-sm focus:border-ink-gold outline-none"
-                          value={editingService.iconName}
-                          onChange={(e) => setEditingService({ ...editingService, iconName: e.target.value })}
-                        >
-                          <option value="pen-tool">Pen Tool</option>
-                          <option value="anchor">Anchor</option>
-                          <option value="message-circle">Message Circle</option>
-                        </select>
-                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleUpdateService(editingService)}

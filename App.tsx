@@ -1,12 +1,61 @@
 // To run website use: npm run dev
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Anchor, PenTool, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
+import { Menu, X, PenTool, Lock, User as UserIcon, Eye, EyeOff, Sparkles } from 'lucide-react';
 import bcrypt from 'bcryptjs';
 import { ViewState, Artist, JewelryItem, User, HomepageContent, Specialty, JewelryTag } from './types';
 import { INITIAL_ARTISTS, SERVICES, SPECIALTY_LABELS } from './constants';
 import Footer from './components/Footer';
 import AdminDashboard from './components/AdminDashboard';
+
+const DiamondGem: React.FC<{ size?: number }> = ({ size = 40 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M8 24L20 8H44L56 24L32 56L8 24Z"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M20 8L32 24L44 8"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8 24H56"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M32 24L20 8"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M32 24L44 8"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M32 56L20 24L32 24L44 24L32 56Z"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>(ViewState.HOME);
@@ -357,9 +406,10 @@ const App: React.FC = () => {
                     {safeHomepageContent.services.map(service => (
                       <div key={service.id} className="bg-ink-slate/30 p-8 border border-ink-slate hover:border-ink-gold transition-colors group">
                         <div className="mb-4 text-ink-gold group-hover:scale-110 transition-transform duration-300">
-                           {service.iconName === 'pen-tool' && <PenTool size={40} />}
-                           {service.iconName === 'anchor' && <Anchor size={40} />}
-                           {service.iconName === 'message-circle' && <UserIcon size={40} />}
+                          {service.id === 's1' && <PenTool size={40} />}
+                          {service.id === 's2' && <DiamondGem size={40} />}
+                          {service.id === 's3' && <Sparkles size={40} />}
+                          {service.id !== 's1' && service.id !== 's2' && service.id !== 's3' && <PenTool size={40} />}
                         </div>
                         <h3 className="text-2xl font-serif mb-2 text-gray-100">{service.title}</h3>
                         <p className="text-ink-gold font-bold mb-4">{service.priceRange}</p>

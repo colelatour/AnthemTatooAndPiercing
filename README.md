@@ -12,5 +12,13 @@
 
 
 Notes for Updates From Rachel
-- Promotion on Homepage, have the "About Anthem" lower
-- Brainstorm ideas for self-created booking website (Deal with forums, personal info, etc.)
+- Promotion Homepage with editable picture, title and description
+- Theme color change
+- Artist profile changes
+   Multiple projects
+   Specialties added (multiple can be true)
+- Jewerly page can add tags (Permanent Jewerly or Jewerly)
+- Editable footer 
+- Services are editable
+- Images can be inserted by files or via a link
+   
