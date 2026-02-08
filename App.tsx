@@ -179,15 +179,27 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('artists', JSON.stringify(artists));
+    try {
+      localStorage.setItem('artists', JSON.stringify(artists));
+    } catch (e) {
+      console.error('Failed to persist artists to localStorage.', e);
+    }
   }, [artists]);
 
   useEffect(() => {
-    localStorage.setItem('jewelry_items', JSON.stringify(jewelryItems));
+    try {
+      localStorage.setItem('jewelry_items', JSON.stringify(jewelryItems));
+    } catch (e) {
+      console.error('Failed to persist jewelry items to localStorage.', e);
+    }
   }, [jewelryItems]);
 
   useEffect(() => {
-    localStorage.setItem('homepage_content', JSON.stringify(homepageContent));
+    try {
+      localStorage.setItem('homepage_content', JSON.stringify(homepageContent));
+    } catch (e) {
+      console.error('Failed to persist homepage content to localStorage.', e);
+    }
   }, [homepageContent]);
 
   const handleAddItem = (item: Artist) => {
@@ -220,6 +232,12 @@ const App: React.FC = () => {
 
   const handleUpdateHomepage = (content: HomepageContent) => {
     setHomepageContent(content);
+    try {
+      localStorage.setItem('homepage_content', JSON.stringify(content));
+    } catch (e) {
+      console.error('Failed to persist homepage content to localStorage.', e);
+      alert('Homepage changes could not be saved on this device. Try a smaller image.');
+    }
   };
 
   const handleLogin = (e: React.FormEvent) => {

@@ -81,42 +81,79 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setScrollToProjectIndex(null);
   }, [scrollToProjectIndex, projectUrls.length]);
 
+  const readAndCompressImage = (
+    file: File,
+    options: { maxWidth: number; maxHeight: number; quality: number },
+    onDone: (dataUrl: string) => void
+  ) => {
+    const reader = new FileReader();
+    const img = new Image();
+
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') return;
+
+      img.onload = () => {
+        let { width, height } = img;
+        const widthRatio = options.maxWidth / width;
+        const heightRatio = options.maxHeight / height;
+        const scale = Math.min(1, widthRatio, heightRatio);
+
+        width = Math.floor(width * scale);
+        height = Math.floor(height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', options.quality);
+        onDone(compressed);
+      };
+
+      img.src = result;
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewItemUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    readAndCompressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 }, (dataUrl) => {
+      setNewItemUrl(dataUrl);
+    });
   };
 
   const handleProjectImageChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newUrls = [...projectUrls];
-        newUrls[index] = reader.result as string;
-        setProjectUrls(newUrls);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    readAndCompressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82 }, (dataUrl) => {
+      setProjectUrls(prev => {
+        const next = [...prev];
+        next[index] = dataUrl;
+        return next;
+      });
+    });
   };
 
   const handleHeroImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setHomepageEdit({ ...homepageEdit, heroImage: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    readAndCompressImage(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.82 }, (dataUrl) => {
+      setHomepageEdit(prev => ({ ...prev, heroImage: dataUrl }));
+    });
   };
 
   const handleSaveHomepage = () => {
+    const heroTooLarge = homepageEdit.heroImage?.startsWith('data:') && homepageEdit.heroImage.length > 1_500_000;
+    const promoTooLarge = homepageEdit.promotionImage?.startsWith('data:') && homepageEdit.promotionImage.length > 1_500_000;
+    if (heroTooLarge || promoTooLarge) {
+      alert('One or more homepage images are very large and may not save on some devices. Please use a smaller image.');
+      return;
+    }
     onUpdateHomepage(homepageEdit);
     alert('Homepage updated successfully!');
   };
@@ -445,13 +482,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setHomepageEdit({ ...homepageEdit, promotionImage: reader.result as string });
-                          };
-                          reader.readAsDataURL(file);
-                        }
+                        if (!file) return;
+                        readAndCompressImage(file, { maxWidth: 1600, maxHeight: 900, quality: 0.82 }, (dataUrl) => {
+                          setHomepageEdit(prev => ({ ...prev, promotionImage: dataUrl }));
+                        });
                       }}
                       className="w-full bg-ink-dark border border-ink-mud rounded p-2 text-gray-300 focus:border-ink-gold outline-none file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-ink-gold file:text-ink-dark hover:file:bg-white transition-colors cursor-pointer"
                     />
